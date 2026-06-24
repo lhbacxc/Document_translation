@@ -13,6 +13,12 @@ output/
 *_humanize_comparison.md
 *_ai_detection_report.md
 
+# 旧版固定命名文件（向后兼容）
+translation.md
+translation_humanized.md
+humanize_comparison.md
+ai_detection_report.md
+
 # Python 相关
 __pycache__/
 *.py[cod]
