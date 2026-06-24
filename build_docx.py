@@ -15,15 +15,19 @@
     python build_docx.py [输入md路径] [输出docx路径]
 
 例：
-    python build_docx.py 我的论文_translation_humanized.md
-    # 输出到 output/我的论文_translation_humanized.docx
+    python build_docx.py output/检测初稿/检测初稿_translation_humanized.md
+    # 输出到 output/检测初稿/检测初稿_translation_humanized.docx（同目录）
 
-    python build_docx.py 我的论文_translation_humanized.md output/custom_name.docx
+    python build_docx.py 我的论文_translation_humanized.md
+    # 输出到 output/我的论文_translation_humanized/我的论文_translation_humanized.docx
+
+    python build_docx.py output/检测初稿/检测初稿_translation.md custom.docx
     # 自定义输出路径
 
 默认：
     若不指定输入路径，默认读取 translation.md
-    若不指定输出路径，自动基于输入文件名生成到 output/ 目录
+    若输入文件在 output/<项目名>/ 下，输出到同一目录
+    否则输出到 output/<输入文件名>/ 目录
 """
 
 import sys
@@ -265,10 +269,19 @@ def build_docx(md_path: str, out_path: str):
 def main():
     md_path = sys.argv[1] if len(sys.argv) >= 2 else "translation.md"
 
-    # 从输入 md 文件名推导输出 docx 文件名
-    # 例如: 论文A_translation_humanized.md -> 论文A_translation_humanized.docx
+    # 从输入 md 文件路径推导输出 docx 路径
+    # 如果 md 在 output/<项目名>/ 下，docx 也生成到同一目录
+    # 例如: output/检测初稿/检测初稿_translation_humanized.md
+    #       -> output/检测初稿/检测初稿_translation_humanized.docx
     input_basename = os.path.splitext(os.path.basename(md_path))[0]
-    default_out = os.path.join("output", f"{input_basename}.docx")
+    input_dir = os.path.dirname(md_path)
+
+    # 如果输入文件在 output/<项目名>/ 下，输出到同一目录
+    # 否则输出到 output/<输入文件名>/
+    if input_dir.startswith("output"):
+        default_out = os.path.join(input_dir, f"{input_basename}.docx")
+    else:
+        default_out = os.path.join("output", input_basename, f"{input_basename}.docx")
 
     out_path = sys.argv[2] if len(sys.argv) >= 3 else default_out
 

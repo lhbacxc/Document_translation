@@ -12,12 +12,12 @@ Unicode 上下标字符（⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ / ₀₁₂₃₄₅
 
 例：
     python extract_text.py input/我的论文.docx
-    # 输出到 temp/我的论文_extracted_text.txt
+    # 输出到 output/我的论文/我的论文_extracted_text.txt
 
-    python extract_text.py input/我的论文.docx temp/custom_output.txt
+    python extract_text.py input/我的论文.docx custom_output.txt
     # 自定义输出路径
 
-若不指定输出路径，默认基于输入文件名写到 temp/<输入文件名>_extracted_text.txt。
+若不指定输出路径，默认基于输入文件名写到 output/<输入文件名>/<输入文件名>_extracted_text.txt。
 """
 
 import sys
@@ -152,8 +152,8 @@ def main():
     # 提取输入文件名（不含扩展名）
     input_basename = os.path.splitext(os.path.basename(docx_path))[0]
 
-    # 默认输出路径基于输入文件名
-    default_out = os.path.join("temp", f"{input_basename}_extracted_text.txt")
+    # 默认输出到 output/<输入文件名>/ 目录
+    default_out = os.path.join("output", input_basename, f"{input_basename}_extracted_text.txt")
     out_path = sys.argv[2] if len(sys.argv) >= 3 else default_out
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
 
