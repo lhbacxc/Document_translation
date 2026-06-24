@@ -1,0 +1,41 @@
+# 输入文件 - 隐私文档
+input/
+
+# 中间产物 - 提取的文本
+temp/
+
+# 输出文件 - 生成的 docx
+output/
+
+# 翻译和润色文件 - 包含论文内容
+*_translation.md
+*_translation_humanized.md
+*_humanize_comparison.md
+*_ai_detection_report.md
+
+# Python 相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 测试文件
+*_test.md
+table_translation_test.md
