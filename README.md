@@ -37,7 +37,7 @@
 git remote add origin https://github.com/你的用户名/仓库名.git
 
 # 3. 推送到远程（首次推送）
-git push -u origin master
+git push -u origin main
 ```
 
 **重要提示：** `.gitignore` 已配置忽略以下内容，确保论文隐私安全：
