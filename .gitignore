@@ -19,6 +19,10 @@ translation_humanized.md
 humanize_comparison.md
 ai_detection_report.md
 
+# 环境配置文件 - 本地配置，不共享
+.project_env.json
+.venv_paper_detection/
+
 # Python 相关
 __pycache__/
 *.py[cod]

@@ -1,1 +1,11 @@
+# 翻译脚本依赖
 python-docx>=1.1.0
+
+# paper-detection skill 依赖（首次使用 skill 时会提示安装）
+# 注意：这些依赖不在项目初始化时安装，而是在首次使用 /paper-detection skill 时
+# skill 会检测并自动安装到你选择的虚拟环境中
+# spacy>=3.7.0
+# textstat>=0.7.3
+# numpy>=1.24.0
+# pandas>=2.0.0
+# tqdm>=4.66.0
