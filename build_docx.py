@@ -267,6 +267,7 @@ def build_docx(md_path: str, out_path: str):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8')
     md_path = sys.argv[1] if len(sys.argv) >= 2 else "translation.md"
 
     # 从输入 md 文件路径推导输出 docx 路径
@@ -278,7 +279,9 @@ def main():
 
     # 如果输入文件在 output/<项目名>/ 下，输出到同一目录
     # 否则输出到 output/<输入文件名>/
-    if input_dir.startswith("output"):
+    # 使用相对路径判断，支持传入绝对路径
+    rel_dir = os.path.relpath(input_dir)
+    if rel_dir.startswith("output" + os.sep) or rel_dir == "output":
         default_out = os.path.join(input_dir, f"{input_basename}.docx")
     else:
         default_out = os.path.join("output", input_basename, f"{input_basename}.docx")

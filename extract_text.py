@@ -140,6 +140,7 @@ def extract_text_from_docx(docx_path: str) -> str:
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8')
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
