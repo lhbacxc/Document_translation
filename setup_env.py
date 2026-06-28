@@ -94,6 +94,81 @@ class EnvSetup:
                 continue
         return None, None, None
 
+    def get_python_path_from_env_path(self, env_type, env_path):
+        """根据环境目录推导 Python 解释器路径"""
+        env_dir = Path(env_path)
+        if env_type == "conda":
+            if sys.platform == "win32":
+                return str(env_dir / "python.exe")
+            return str(env_dir / "bin" / "python")
+
+        if sys.platform == "win32":
+            return str(env_dir / "Scripts" / "python.exe")
+        return str(env_dir / "bin" / "python")
+
+    def resolve_conda_env_paths(self, env_name):
+        """解析 Conda 环境目录与 Python 解释器路径"""
+        try:
+            result = subprocess.run(
+                ["conda", "env", "list", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                for env_path_str in data.get("envs", []):
+                    env_path = Path(env_path_str)
+                    if env_path.name == env_name:
+                        return str(env_path), self.get_python_path_from_env_path("conda", env_path)
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+            pass
+
+        try:
+            result = subprocess.run(
+                ["conda", "run", "-n", env_name, "python", "-c", "import sys; print(sys.executable)"],
+                capture_output=True,
+                text=True,
+                timeout=15
+            )
+            if result.returncode == 0:
+                lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+                if lines:
+                    python_path = lines[-1]
+                    python_file = Path(python_path)
+                    if sys.platform == "win32":
+                        env_path = python_file.parent
+                    else:
+                        env_path = python_file.parent.parent
+                    return str(env_path), python_path
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+        return None, None
+
+    def backfill_config_paths(self):
+        """为旧配置补齐环境目录和 Python 解释器路径"""
+        updated = False
+        env_type = self.config.get("env_type")
+
+        if env_type == "conda":
+            env_name = self.config.get("env_name")
+            if env_name and (not self.config.get("env_path") or not self.config.get("python_path")):
+                env_path, python_path = self.resolve_conda_env_paths(env_name)
+                if env_path and not self.config.get("env_path"):
+                    self.config["env_path"] = env_path
+                    updated = True
+                if python_path and not self.config.get("python_path"):
+                    self.config["python_path"] = python_path
+                    updated = True
+        elif env_type == "venv":
+            env_path = self.config.get("env_path")
+            if env_path and not self.config.get("python_path"):
+                self.config["python_path"] = self.get_python_path_from_env_path("venv", env_path)
+                updated = True
+
+        return updated
+
     def ask_user(self, prompt, default=None):
         """询问用户输入"""
         if self.non_interactive:
@@ -179,21 +254,20 @@ class EnvSetup:
         # 安装依赖
         print(f"\n[执行] 安装依赖到环境: {env_name}")
 
-        # Windows 和 Linux/Mac 的激活命令不同
-        if sys.platform == "win32":
-            pip_cmd = f"conda run -n {env_name} pip install -r {REQUIREMENTS_FILE}"
-        else:
-            pip_cmd = f"conda run -n {env_name} pip install -r {REQUIREMENTS_FILE}"
-
+        pip_cmd = f"conda run -n {env_name} pip install -r {REQUIREMENTS_FILE}"
         result = subprocess.run(pip_cmd, shell=True, check=False)
         if result.returncode != 0:
             print("[失败] 安装依赖失败")
             return False
 
+        env_path, python_path = self.resolve_conda_env_paths(env_name)
+
         # 保存配置
         self.config = {
             "env_type": "conda",
             "env_name": env_name,
+            "env_path": env_path,
+            "python_path": python_path,
             "python_version": "3.11",
             "created_at": datetime.now().isoformat(),
             "requirements_installed": True
@@ -202,7 +276,10 @@ class EnvSetup:
 
         print(f"\n[成功] 环境配置完成！")
         print(f"   环境名称: {env_name}")
-        print(f"   激活命令: conda activate {env_name}")
+        if env_path:
+            print(f"   环境路径: {env_path}")
+        if python_path:
+            print(f"   Python 路径: {python_path}")
         return True
 
     def setup_venv(self, python_cmd):
@@ -244,10 +321,8 @@ class EnvSetup:
         # 获取 pip 路径
         if sys.platform == "win32":
             pip_path = venv_path / "Scripts" / "pip.exe"
-            activate_cmd = f".\\{venv_path}\\Scripts\\Activate.ps1"
         else:
             pip_path = venv_path / "bin" / "pip"
-            activate_cmd = f"source {venv_path}/bin/activate"
 
         # 安装依赖
         print(f"\n[执行] 安装依赖")
@@ -263,6 +338,7 @@ class EnvSetup:
         self.config = {
             "env_type": "venv",
             "env_path": str(venv_path),
+            "python_path": self.get_python_path_from_env_path("venv", venv_path),
             "python_version": sys.version.split()[0],
             "created_at": datetime.now().isoformat(),
             "requirements_installed": True
@@ -271,7 +347,7 @@ class EnvSetup:
 
         print(f"\n[成功] 环境配置完成！")
         print(f"   环境路径: {venv_path}")
-        print(f"   激活命令: {activate_cmd}")
+        print(f"   Python 路径: {self.config.get('python_path')}")
         return True
 
     def save_config(self):
@@ -291,12 +367,16 @@ class EnvSetup:
 
         # 检查是否已配置
         if self.check_existing_config() and not self.force_recreate:
+            if self.backfill_config_paths():
+                self.save_config()
             print("\n[检测] 检测到已有配置:")
             print(f"   环境类型: {self.config.get('env_type')}")
             if self.config.get('env_type') == 'conda':
                 print(f"   环境名称: {self.config.get('env_name')}")
-            else:
-                print(f"   环境路径: {self.config.get('env_path')}")
+            if self.config.get('env_path'):
+                print(f"   环境目录: {self.config.get('env_path')}")
+            if self.config.get('python_path'):
+                print(f"   Python 路径: {self.config.get('python_path')}")
             print(f"   配置时间: {self.config.get('created_at')}")
 
             if self.non_interactive:
@@ -432,6 +512,9 @@ def parse_args():
 
 def main():
     """主函数"""
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding='utf-8')
+
     args = parse_args()
 
     # 创建配置对象
@@ -450,17 +533,12 @@ def main():
         print("[成功] 环境配置成功！")
         print("=" * 60)
         print("\n下一步:")
-        print("1. 激活虚拟环境")
-        if setup.config.get('env_type') == 'conda':
-            print(f"   conda activate {setup.config.get('env_name')}")
-        else:
-            if sys.platform == "win32":
-                print(f"   .\\{setup.config.get('env_path')}\\Scripts\\Activate.ps1")
-            else:
-                print(f"   source {setup.config.get('env_path')}/bin/activate")
+        print("1. 记录并使用目标环境的 Python 绝对路径")
+        print(f"   {setup.config.get('python_path')}")
+        print("   自动化调用时不要使用 conda activate")
 
         print("\n2. 开始翻译工作流")
-        print("   python extract_text.py input/你的论文.docx")
+        print(f"   {setup.config.get('python_path')} extract_text.py input/你的论文.docx")
 
         print("\n3. 使用 /paper-detection skill 时")
         print("   首次运行会询问环境选择，请选择上面创建的虚拟环境")

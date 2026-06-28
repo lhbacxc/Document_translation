@@ -13,16 +13,18 @@ python setup_env.py
 
 脚本会自动检测你的环境（Conda/Python）并引导配置，生成 `.project_env.json` 记录环境信息。
 
+> 说明：在 CLI 工具、脚本或 AI 助手的非交互式调用里，不要依赖 `conda activate`。后续执行项目脚本时，应优先使用目标环境的 Python 绝对路径。
+
 详细说明请参考 [docs/环境准备.md](./docs/环境准备.md)。
 
 ### 2. 开始翻译
 
 ```bash
-# 激活虚拟环境
-conda activate doc_translation  # 或使用 venv 激活命令
+# 推荐：直接使用目标环境的 Python 绝对路径
+<你的 Python 绝对路径> extract_text.py input/你的论文.docx
 
-# 提取中文原文
-python extract_text.py input/你的论文.docx
+# 例如（Windows + Conda）
+D:\Software\Miniconda\envs\doc_translation\python.exe extract_text.py input/你的论文.docx
 
 # 后续步骤请参考项目概览.md
 ```
