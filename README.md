@@ -33,8 +33,9 @@ D:\Software\Miniconda\envs\doc_translation\python.exe extract_text.py input/你�
 
 - ✅ 完整的 docx → Markdown → docx 转换流程
 - ✅ 保留上下标和表格格式
-- ✅ 集成 AI 写作痕迹去除（humanizer）
-- ✅ 集成 AI 痕迹检测（paper-detection）
+- ✅ 集成 AI 写作痕迹去除（translation-humanizer）
+- ✅ 集成 AI 痕迹检测（translation-paper-detection）
+- ✅ 项目内自带 `skills/` 目录，可随仓库一起迁移
 - ✅ 基于输入文件名的自动命名
 - ✅ 支持多论文并行处理
 - ✅ 自动环境配置，分享友好
@@ -43,6 +44,7 @@ D:\Software\Miniconda\envs\doc_translation\python.exe extract_text.py input/你�
 
 - [项目概览.md](./项目概览.md) - 核心翻译流程（精简版）
 - [docs/](./docs/) - 参考文档（环境配置、表格处理、对照表格式等）
+- [docs/项目内skill更新规范.md](./docs/项目内skill更新规范.md) - 项目级 skill 更新规范
 - [开发历程.md](./开发历程.md) - 开发过程和技术决策
 - [TODO.md](./TODO.md) - 待优化项
 
