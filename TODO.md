@@ -1,6 +1,3 @@
-
-
-
 - 看是否可以生成的英文文档加上原来的图，即不用自己配图，现在生成的英文文档只有文字版
 
 
@@ -12,13 +9,9 @@
 
 - （优先级低）文献引用问题，生成的docx文献并不具备 Zotero 的域代码，所以不能实时编辑，现在的方法是手动添加
 
-- （优先级低）conda run 在 Windows 上遇到编码问题。改用 PowerShell 直接激活环境，直接执行 python 脚本。
-    conda run -n PDF_AIGC python extract_text.py input/整体流程测试.docx
-    这是 Windows 系统编码问题。conda run 遇到了中文路径的编码错误。让我换一种方式，直接激活环境后执行脚本。
-    conda activate PDF_AIGC; python extract_text.py input/整体流程测试.docx
-    这个是成功的，成功生成文件，虽然控制台输出的依旧是乱码
-
-- 程序调用 conda 的环境激活，是无法正常激活环境的，需要使用绝对路径。已经写到了 claude.md 文件中了，是否也要更新到项目概览中呢？还有相关的 skill 中是否也要进行更新
+- 连字符的问题，看最后导出为 docx 文档时是否可以解决
 
 
+- ✅Agent 调用 conda 的环境激活，是无法正常激活环境的，需要使用绝对路径。已经写到了 AI 遵守规则和该项目中中了
 - ✅表格问题，最后生成的 docx 和 md 文档都无法正常的显示表格
+- ✅使用 python 脚本输出中文时的乱码问题，需要在脚本入口处添加 `sys.stdout.reconfigure(encoding='utf-8')`
